@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Registro de Problemática</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+</head>
+<body class="bg-slate-900 min-h-screen flex items-center justify-center p-4 sm:p-8"
+      style="background-image: linear-gradient(rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.7)), url('https://www.lifeder.com/wp-content/uploads/2020/10/biodiversidad-contaminacion-argentina.jpg');
+      background-size: cover; background-position: center; background-attachment: fixed;">
+  <div class="w-full max-w-5xl bg-white shadow-xl rounded-2xl border border-gray-100 overflow-hidden flex flex-col md:flex-row">
+    
+    <div class="w-full md:w-1/2 p-6 md:p-8 custom-scroll md:max-h-[85vh] md:overflow-y-auto">
+      <header class="mb-6">
+        <h1 class="text-2xl font-extrabold text-gray-800 tracking-tight">Registro de Problemática</h1>
+        <p class="text-sm text-gray-400 mt-1">Por favor ingrese los datos requeridos y ubique el punto en el mapa.</p>
+      </header>
+      
+      <form id="formProblematica" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Descripción</label>
+          <input id="descripcion" type="text" class="w-full border border-gray-200 rounded-xl p-2.5 text-gray-700 outline-none transition-all placeholder:text-gray-300" placeholder="Describa brevemente la situación..."/>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Entidad</label>
+            <select id="entidad" class="w-full border border-gray-200 rounded-xl p-2.5 bg-gray-50 text-sm text-gray-700 focus:bg-white outline-none  transition-colors"></select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Municipio</label>
+            <select id="municipio" class="w-full border border-gray-200 rounded-xl p-2.5 bg-gray-50 text-sm text-gray-700 focus:bg-white outline-none  transition-colors"></select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Localidad</label>
+            <select id="localidad" class="w-full border border-gray-200 rounded-xl p-2.5 bg-gray-50 text-sm text-gray-700 focus:bg-white outline-none  transition-colors"></select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Domicilio</label>
+          <input id="domicilio" type="text" class="w-full border border-gray-200 rounded-xl p-2.5 text-gray-700 outline-none transition-all" placeholder="Calle, número o referencias"/>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Tipo población</label>
+            <select id="tipo-poblacion" class="w-full border border-gray-200 rounded-xl p-2.5 bg-gray-50 text-sm text-gray-700 transition-colors">
+              <option value="rural">Rural</option>
+              <option value="urbano">Urbano</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Tipo Camino</label>
+            <select id="tipo-camino" class="w-full border border-gray-200 rounded-xl p-2.5 bg-gray-50 text-sm text-gray-700 focus:bg-white outline-none transition-colors">
+              <option value="">Seleccione tipo camino</option>
+              <option value="pavimentado">Pavimentado</option>
+              <option value="terraceria">Terracería</option>
+              <option value="veredas">Veredas</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap gap-4 py-1">
+          <label class="inline-flex items-center cursor-pointer select-none">
+            <input type="checkbox" id="internet" class="w-4 h-4 rounded border-gray-300 accent-gray-600">
+            <span class="ml-2 text-sm text-gray-600 font-medium">¿Cuenta con Internet?</span>
+          </label>
+
+          <label class="inline-flex items-center cursor-pointer select-none">
+            <input type="checkbox" id="pavimento" class="w-4 h-4 rounded border-gray-300 text-green-600 focus:ring-green-500 accent-gray-600">
+            <span class="ml-2 text-sm text-gray-600 font-medium">¿Cuenta con Pavimento?</span>
+          </label>
+        </div>
+
+        <div class="pt-2">
+          <button type="submit" class="w-full bg-green-600 text-white font-bold py-3 rounded-xl hover:bg-green-700 shadow-md shadow-green-100 active:scale-[0.99] transition-all">
+            Guardar Reporte
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div class="w-full md:w-1/2 bg-slate-50 p-6 flex flex-col justify-between border-t md:border-t-0 md:border-l border-gray-100">
+      <div class="flex flex-col flex-grow">
+        <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Seleccione ubicación en el mapa</label>
+        <div id="map" class="w-full h-64 md:h-full rounded-xl border border-gray-200 shadow-inner z-10 min-h-[300px]"></div>
+      </div>
+      
+      <div id="mensaje" class="mt-4 min-h-[40px] flex items-center justify-center text-sm font-medium"></div>
+    </div>
+
+  </div>
+
+  
+  <script>
+    // Inicializar mapa laflet
+    var map = L.map('map').setView([19.289, -99.653], 7);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    var marker, lat, lon;
+
+    map.on("click", function(e) {
+      lat = e.latlng.lat.toFixed(6);
+      lon = e.latlng.lng.toFixed(6);
+
+      if (marker) map.removeLayer(marker);
+      marker = L.marker([lat, lon]).addTo(map)
+        .bindPopup(`Coordenadas:<br>Lat: ${lat}<br>Lon: ${lon}`)
+        .openPopup();
+    });
+
+    // Cargar entidades
+    fetch("https://observatoriogeograficoamericalatina.org.mx/mgn-api/entidades.php/get")
+      .then(res => res.json())
+      .then(data => {
+        let entidadSelect = document.getElementById("entidad");
+        data.forEach(ent => {
+          let opt = document.createElement("option");
+          opt.value = ent.id_ent;
+          opt.textContent = ent.nom_ent;
+          entidadSelect.appendChild(opt);
+        });
+      });
+
+    // Municipios
+    document.getElementById("entidad").addEventListener("change", function() {
+      let idEnt = this.value;
+      fetch(`https://observatoriogeograficoamericalatina.org.mx/mgn-api/municipios.php/${idEnt}`)
+        .then(res => res.json())
+        .then(data => {
+          let municipioSelect = document.getElementById("municipio");
+          municipioSelect.innerHTML = "";
+          data.forEach(mun => {
+            let opt = document.createElement("option");
+            opt.value = mun.id_mun;
+            opt.textContent = mun.nom_mun;
+            municipioSelect.appendChild(opt);
+          });
+        });
+    });
+
+    // Localidades
+    document.getElementById("municipio").addEventListener("change", function() {
+      let idMun = this.value;
+      fetch(`https://observatoriogeograficoamericalatina.org.mx/mgn-api/localidades.php/?id_mun=${idMun}`)
+        .then(res => res.json())
+        .then(data => {
+          let localidadSelect = document.getElementById("localidad");
+          localidadSelect.innerHTML = "";
+          data.forEach(loc => {
+            let opt = document.createElement("option");
+            opt.value = loc.nom_loc;
+            opt.textContent = loc.nom_loc;
+            localidadSelect.appendChild(opt);
+          });
+        });
+    });
+
+    // Enviar formulario
+    const form = document.getElementById("formProblematica");
+    const mensajeDiv = document.getElementById("mensaje");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+
+      // Validar campos obligatorios
+      if (!document.getElementById("descripcion").value ||
+          !document.getElementById("entidad").value ||
+          !document.getElementById("municipio").value ||
+          !document.getElementById("localidad").value ||
+          !document.getElementById("domicilio").value ||
+          !document.getElementById("tipo-poblacion").value ||
+          !document.getElementById("tipo-camino").value ||
+          !lat || !lon) {
+        mensajeDiv.innerHTML = `<p class="bg-red-100 text-red-700 p-2 rounded">Debe llenar todos los campos y seleccionar ubicación en el mapa</p>`;
+        return;
+      }
+
+      const datosProblematica = {
+        descripcion: document.getElementById("descripcion").value,
+        entidad: document.getElementById("entidad").value,
+        municipio: document.getElementById("municipio").value,
+        localidad: document.getElementById("localidad").value,
+        domicilio: document.getElementById("domicilio").value,
+        tipo_poblacion: document.getElementById("tipo-poblacion").value,
+        tipo_camino: document.getElementById("tipo-camino").value,
+        internet: document.getElementById("internet").checked ? 1 : 0,
+        pavimento: document.getElementById("pavimento").checked ? 1 : 0,
+        lat: lat,
+        lon: lon
+      };
+
+      try {
+        const respuesta = await fetch("https://observatoriogeograficoamericalatina.org.mx/pa-api/problematica.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(datosProblematica)
+        });
+
+        const resultado = await respuesta.json();
+
+        mensajeDiv.innerHTML = `
+          <p class="bg-green-100 text-green-700 p-2 rounded">
+            Problemática registrada correctamente
+          </p>
+        `;
+      } catch (error) {
+        mensajeDiv.innerHTML = `
+          <p class="bg-red-100 text-red-700 p-2 rounded">
+            Error al registrar la problemática
+          </p>
+        `;
+      }
+    });
+  </script>
+</body>
+</html>
